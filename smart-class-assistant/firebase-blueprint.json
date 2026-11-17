@@ -1,0 +1,495 @@
+{
+  "entities": {
+    "UserPublic": {
+      "title": "UserPublic",
+      "description": "Public-safe user profile and role identity without PII.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "displayName": { "type": "string", "minLength": 2, "maxLength": 100 },
+        "role": { "type": "string", "enum": ["student", "lecturer", "admin"] },
+        "departmentId": { "type": "string", "maxLength": 128 },
+        "departmentName": { "type": "string", "maxLength": 120 },
+        "level": { "type": "string", "enum": ["100", "200", "300", "400", "500", "Postgraduate", "Staff"] },
+        "title": { "type": "string", "maxLength": 60 },
+        "bio": { "type": "string", "maxLength": 500 },
+        "avatarUrl": { "type": "string", "maxLength": 500 },
+        "status": { "type": "string", "enum": ["active", "suspended"] },
+        "inviteCode": { "type": "string", "maxLength": 64 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "displayName", "role", "departmentId", "level", "status", "createdAt", "updatedAt"]
+    },
+    "UserPrivate": {
+      "title": "UserPrivate",
+      "description": "PII-isolated private user information accessible only to owner or admin.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "email": { "type": "string", "format": "email", "maxLength": 200 },
+        "institutionalId": { "type": "string", "maxLength": 60 },
+        "phone": { "type": "string", "maxLength": 40 },
+        "emailNotifications": { "type": "boolean" },
+        "offlineAutoCache": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "createdAt", "updatedAt"]
+    },
+    "AdminRecord": {
+      "title": "AdminRecord",
+      "description": "Explicit administrator privilege marker.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "grantedBy": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "grantedBy", "createdAt"]
+    },
+    "StaffInvite": {
+      "title": "StaffInvite",
+      "description": "Institutional invite code allowing verified staff onboarding.",
+      "type": "object",
+      "properties": {
+        "code": { "type": "string", "minLength": 4, "maxLength": 64, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "departmentId": { "type": "string", "maxLength": 128 },
+        "active": { "type": "boolean" },
+        "createdBy": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["code", "active", "createdBy", "createdAt"]
+    },
+    "StaffRequest": {
+      "title": "StaffRequest",
+      "description": "Pending request from a signed-in user to obtain lecturer privileges.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "displayName": { "type": "string", "minLength": 2, "maxLength": 100 },
+        "departmentId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "staffTitle": { "type": "string", "maxLength": 60 },
+        "reason": { "type": "string", "minLength": 5, "maxLength": 500 },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "reviewedBy": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "displayName", "departmentId", "reason", "status", "createdAt", "updatedAt"]
+    },
+    "Department": {
+      "title": "Department",
+      "description": "Academic department within the institution.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "code": { "type": "string", "minLength": 2, "maxLength": 16 },
+        "name": { "type": "string", "minLength": 2, "maxLength": 120 },
+        "faculty": { "type": "string", "minLength": 2, "maxLength": 120 },
+        "description": { "type": "string", "maxLength": 500 },
+        "createdBy": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "code", "name", "faculty", "createdBy", "createdAt", "updatedAt"]
+    },
+    "Course": {
+      "title": "Course",
+      "description": "Academic course offered under a department and level.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "code": { "type": "string", "minLength": 2, "maxLength": 24 },
+        "title": { "type": "string", "minLength": 2, "maxLength": 160 },
+        "departmentId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "departmentName": { "type": "string", "maxLength": 120 },
+        "level": { "type": "string", "enum": ["100", "200", "300", "400", "500", "Postgraduate"] },
+        "semester": { "type": "string", "maxLength": 40 },
+        "lecturerId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "lecturerName": { "type": "string", "minLength": 2, "maxLength": 100 },
+        "description": { "type": "string", "maxLength": 800 },
+        "creditUnits": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "code", "title", "departmentId", "departmentName", "level", "lecturerId", "lecturerName", "createdAt", "updatedAt"]
+    },
+    "Enrollment": {
+      "title": "Enrollment",
+      "description": "Student course enrollment mapping.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "studentId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "courseId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "courseCode": { "type": "string", "maxLength": 24 },
+        "courseTitle": { "type": "string", "maxLength": 160 },
+        "departmentId": { "type": "string", "maxLength": 128 },
+        "level": { "type": "string", "maxLength": 24 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "studentId", "courseId", "createdAt"]
+    },
+    "Material": {
+      "title": "Material",
+      "description": "Uploaded course learning material, notes, slides, or documents.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "courseId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "courseCode": { "type": "string", "minLength": 2, "maxLength": 24 },
+        "courseTitle": { "type": "string", "minLength": 2, "maxLength": 160 },
+        "departmentId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "departmentName": { "type": "string", "maxLength": 120 },
+        "level": { "type": "string", "enum": ["100", "200", "300", "400", "500", "Postgraduate"] },
+        "lecturerId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "lecturerName": { "type": "string", "minLength": 2, "maxLength": 100 },
+        "topic": { "type": "string", "minLength": 2, "maxLength": 160 },
+        "title": { "type": "string", "minLength": 2, "maxLength": 180 },
+        "description": { "type": "string", "maxLength": 1500 },
+        "resourceType": { "type": "string", "enum": ["pdf", "notes", "slides", "docx", "image", "reading"] },
+        "fileUrl": { "type": "string", "maxLength": 1000 },
+        "fileName": { "type": "string", "maxLength": 255 },
+        "fileSizeBytes": { "type": "number" },
+        "mimeType": { "type": "string", "maxLength": 120 },
+        "lectureDate": { "type": "string", "maxLength": 20 },
+        "notesContent": { "type": "string", "maxLength": 25000 },
+        "moderationStatus": { "type": "string", "enum": ["approved", "pending", "removed"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "courseId", "courseCode", "courseTitle", "departmentId", "level", "lecturerId", "lecturerName", "topic", "title", "resourceType", "lectureDate", "moderationStatus", "createdAt", "updatedAt"]
+    },
+    "Lecture": {
+      "title": "Lecture",
+      "description": "Recorded lecture video and continuity summary.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "courseId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "courseCode": { "type": "string", "minLength": 2, "maxLength": 24 },
+        "courseTitle": { "type": "string", "minLength": 2, "maxLength": 160 },
+        "departmentId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "departmentName": { "type": "string", "maxLength": 120 },
+        "level": { "type": "string", "enum": ["100", "200", "300", "400", "500", "Postgraduate"] },
+        "lecturerId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "lecturerName": { "type": "string", "minLength": 2, "maxLength": 100 },
+        "topic": { "type": "string", "minLength": 2, "maxLength": 160 },
+        "title": { "type": "string", "minLength": 2, "maxLength": 180 },
+        "description": { "type": "string", "maxLength": 1500 },
+        "videoUrl": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "durationMinutes": { "type": "number" },
+        "lectureDate": { "type": "string", "maxLength": 20 },
+        "relatedMaterialId": { "type": "string", "maxLength": 128 },
+        "transcriptSummary": { "type": "string", "maxLength": 10000 },
+        "moderationStatus": { "type": "string", "enum": ["approved", "pending", "removed"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "courseId", "courseCode", "courseTitle", "departmentId", "level", "lecturerId", "lecturerName", "topic", "title", "videoUrl", "lectureDate", "moderationStatus", "createdAt", "updatedAt"]
+    },
+    "Assignment": {
+      "title": "Assignment",
+      "description": "Course assignment published by a lecturer.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "courseId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "courseCode": { "type": "string", "minLength": 2, "maxLength": 24 },
+        "courseTitle": { "type": "string", "minLength": 2, "maxLength": 160 },
+        "departmentId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "level": { "type": "string", "enum": ["100", "200", "300", "400", "500", "Postgraduate"] },
+        "lecturerId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "lecturerName": { "type": "string", "minLength": 2, "maxLength": 100 },
+        "topic": { "type": "string", "maxLength": 160 },
+        "title": { "type": "string", "minLength": 2, "maxLength": 180 },
+        "instructions": { "type": "string", "minLength": 5, "maxLength": 5000 },
+        "attachmentUrl": { "type": "string", "maxLength": 1000 },
+        "attachmentName": { "type": "string", "maxLength": 255 },
+        "dueDate": { "type": "string", "maxLength": 40 },
+        "maxPoints": { "type": "number" },
+        "status": { "type": "string", "enum": ["published", "closed"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "courseId", "courseCode", "courseTitle", "departmentId", "level", "lecturerId", "lecturerName", "title", "instructions", "dueDate", "maxPoints", "status", "createdAt", "updatedAt"]
+    },
+    "AssignmentSubmission": {
+      "title": "AssignmentSubmission",
+      "description": "Student submission and lecturer grading record for an assignment.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "assignmentId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "courseId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "courseCode": { "type": "string", "maxLength": 24 },
+        "studentId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "studentName": { "type": "string", "minLength": 2, "maxLength": 100 },
+        "submissionText": { "type": "string", "maxLength": 10000 },
+        "attachmentUrl": { "type": "string", "maxLength": 1000 },
+        "attachmentName": { "type": "string", "maxLength": 255 },
+        "status": { "type": "string", "enum": ["submitted", "graded"] },
+        "score": { "type": "number" },
+        "maxPoints": { "type": "number" },
+        "feedback": { "type": "string", "maxLength": 2000 },
+        "gradedBy": { "type": "string", "maxLength": 128 },
+        "submittedAt": { "type": "string", "format": "date-time" },
+        "gradedAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "assignmentId", "courseId", "studentId", "studentName", "status", "maxPoints", "submittedAt", "updatedAt"]
+    },
+    "Quiz": {
+      "title": "Quiz",
+      "description": "Timed objective and essay quiz published by a lecturer.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "courseId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "courseCode": { "type": "string", "minLength": 2, "maxLength": 24 },
+        "courseTitle": { "type": "string", "minLength": 2, "maxLength": 160 },
+        "departmentId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "level": { "type": "string", "enum": ["100", "200", "300", "400", "500", "Postgraduate"] },
+        "lecturerId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "lecturerName": { "type": "string", "minLength": 2, "maxLength": 100 },
+        "topic": { "type": "string", "maxLength": 160 },
+        "title": { "type": "string", "minLength": 2, "maxLength": 180 },
+        "description": { "type": "string", "maxLength": 1500 },
+        "durationMinutes": { "type": "number" },
+        "totalPoints": { "type": "number" },
+        "dueDate": { "type": "string", "maxLength": 40 },
+        "status": { "type": "string", "enum": ["published", "closed"] },
+        "questionCount": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "courseId", "courseCode", "courseTitle", "departmentId", "level", "lecturerId", "lecturerName", "title", "durationMinutes", "totalPoints", "status", "questionCount", "createdAt", "updatedAt"]
+    },
+    "QuizQuestion": {
+      "title": "QuizQuestion",
+      "description": "Individual objective or essay question belonging to a quiz.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "quizId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "orderIndex": { "type": "number" },
+        "type": { "type": "string", "enum": ["objective", "essay"] },
+        "prompt": { "type": "string", "minLength": 2, "maxLength": 1500 },
+        "options": { "type": "array" },
+        "correctOptionIndex": { "type": "number" },
+        "points": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "quizId", "orderIndex", "type", "prompt", "points", "createdAt"]
+    },
+    "QuizSubmission": {
+      "title": "QuizSubmission",
+      "description": "Student quiz attempt, answers, score, and lecturer feedback.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "quizId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "courseId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "courseCode": { "type": "string", "maxLength": 24 },
+        "studentId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "studentName": { "type": "string", "minLength": 2, "maxLength": 100 },
+        "answers": { "type": "object" },
+        "autoScore": { "type": "number" },
+        "finalScore": { "type": "number" },
+        "maxPoints": { "type": "number" },
+        "status": { "type": "string", "enum": ["submitted", "graded"] },
+        "feedback": { "type": "string", "maxLength": 2000 },
+        "gradedBy": { "type": "string", "maxLength": 128 },
+        "durationSpentSeconds": { "type": "number" },
+        "submittedAt": { "type": "string", "format": "date-time" },
+        "gradedAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "quizId", "courseId", "studentId", "studentName", "answers", "autoScore", "maxPoints", "status", "submittedAt", "updatedAt"]
+    },
+    "Announcement": {
+      "title": "Announcement",
+      "description": "Academic announcement, lecture summary, or schedule update.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "courseId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "courseCode": { "type": "string", "maxLength": 24 },
+        "courseTitle": { "type": "string", "maxLength": 160 },
+        "departmentId": { "type": "string", "maxLength": 128 },
+        "level": { "type": "string", "enum": ["100", "200", "300", "400", "500", "Postgraduate", "All"] },
+        "lecturerId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "lecturerName": { "type": "string", "minLength": 2, "maxLength": 100 },
+        "category": { "type": "string", "enum": ["lecture_summary", "upcoming_lecture", "schedule_change", "assignment_notice", "academic_notice", "reading"] },
+        "title": { "type": "string", "minLength": 2, "maxLength": 180 },
+        "body": { "type": "string", "minLength": 5, "maxLength": 4000 },
+        "lectureDate": { "type": "string", "maxLength": 20 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "courseId", "lecturerId", "lecturerName", "category", "title", "body", "createdAt", "updatedAt"]
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "In-app notification for students and staff.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "recipientId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "type": { "type": "string", "enum": ["material", "lecture", "assignment", "quiz", "announcement", "grade", "qa"] },
+        "title": { "type": "string", "minLength": 2, "maxLength": 180 },
+        "message": { "type": "string", "minLength": 2, "maxLength": 500 },
+        "courseId": { "type": "string", "maxLength": 128 },
+        "courseCode": { "type": "string", "maxLength": 24 },
+        "linkSection": { "type": "string", "maxLength": 60 },
+        "isRead": { "type": "boolean" },
+        "createdBy": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "recipientId", "type", "title", "message", "isRead", "createdBy", "createdAt"]
+    },
+    "SavedMaterial": {
+      "title": "SavedMaterial",
+      "description": "User bookmark for a learning material or recorded lecture.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "userId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "itemId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "itemType": { "type": "string", "enum": ["material", "lecture"] },
+        "courseId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "courseCode": { "type": "string", "maxLength": 24 },
+        "title": { "type": "string", "maxLength": 180 },
+        "topic": { "type": "string", "maxLength": 160 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "itemId", "itemType", "courseId", "title", "createdAt"]
+    },
+    "LearningProgress": {
+      "title": "LearningProgress",
+      "description": "Reading and lecture video resume progress per student.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "userId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "courseId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "itemId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "itemType": { "type": "string", "enum": ["material", "lecture"] },
+        "title": { "type": "string", "maxLength": 180 },
+        "topic": { "type": "string", "maxLength": 160 },
+        "progressPercent": { "type": "number" },
+        "lastPositionSeconds": { "type": "number" },
+        "completed": { "type": "boolean" },
+        "lastAccessedAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "courseId", "itemId", "itemType", "progressPercent", "completed", "lastAccessedAt", "updatedAt"]
+    },
+    "Discussion": {
+      "title": "Discussion",
+      "description": "Course and material Q&A thread between students and lecturers.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "courseId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "courseCode": { "type": "string", "maxLength": 24 },
+        "materialId": { "type": "string", "maxLength": 128 },
+        "materialTitle": { "type": "string", "maxLength": 180 },
+        "authorId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "authorName": { "type": "string", "minLength": 2, "maxLength": 100 },
+        "question": { "type": "string", "minLength": 3, "maxLength": 2000 },
+        "replyText": { "type": "string", "maxLength": 3000 },
+        "repliedById": { "type": "string", "maxLength": 128 },
+        "repliedByName": { "type": "string", "maxLength": 100 },
+        "repliedAt": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["open", "answered"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "courseId", "authorId", "authorName", "question", "status", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserPublic" },
+      "description": "Public-safe user profile and role identity."
+    },
+    "/users/{userId}/private/{docId}": {
+      "schema": { "$ref": "#/entities/UserPrivate" },
+      "description": "PII-isolated private user metadata."
+    },
+    "/admins/{userId}": {
+      "schema": { "$ref": "#/entities/AdminRecord" },
+      "description": "Authorized system administrator records."
+    },
+    "/staffInvites/{inviteCode}": {
+      "schema": { "$ref": "#/entities/StaffInvite" },
+      "description": "Valid institutional invite codes for staff onboarding."
+    },
+    "/staffRequests/{userId}": {
+      "schema": { "$ref": "#/entities/StaffRequest" },
+      "description": "Pending lecturer role verification requests."
+    },
+    "/departments/{departmentId}": {
+      "schema": { "$ref": "#/entities/Department" },
+      "description": "Academic departments."
+    },
+    "/courses/{courseId}": {
+      "schema": { "$ref": "#/entities/Course" },
+      "description": "Courses organized by department and academic level."
+    },
+    "/enrollments/{enrollmentId}": {
+      "schema": { "$ref": "#/entities/Enrollment" },
+      "description": "Student course enrollments."
+    },
+    "/materials/{materialId}": {
+      "schema": { "$ref": "#/entities/Material" },
+      "description": "Course learning materials, notes, and slides."
+    },
+    "/lectures/{lectureId}": {
+      "schema": { "$ref": "#/entities/Lecture" },
+      "description": "Recorded lecture videos."
+    },
+    "/assignments/{assignmentId}": {
+      "schema": { "$ref": "#/entities/Assignment" },
+      "description": "Course assignments."
+    },
+    "/assignmentSubmissions/{submissionId}": {
+      "schema": { "$ref": "#/entities/AssignmentSubmission" },
+      "description": "Student assignment submissions and grades."
+    },
+    "/quizzes/{quizId}": {
+      "schema": { "$ref": "#/entities/Quiz" },
+      "description": "Course quizzes."
+    },
+    "/quizzes/{quizId}/questions/{questionId}": {
+      "schema": { "$ref": "#/entities/QuizQuestion" },
+      "description": "Quiz questions."
+    },
+    "/quizSubmissions/{submissionId}": {
+      "schema": { "$ref": "#/entities/QuizSubmission" },
+      "description": "Student quiz attempts and grades."
+    },
+    "/announcements/{announcementId}": {
+      "schema": { "$ref": "#/entities/Announcement" },
+      "description": "Academic announcements and lecture summaries."
+    },
+    "/notifications/{notificationId}": {
+      "schema": { "$ref": "#/entities/Notification" },
+      "description": "In-app notifications."
+    },
+    "/savedMaterials/{savedId}": {
+      "schema": { "$ref": "#/entities/SavedMaterial" },
+      "description": "Bookmarked materials and lectures."
+    },
+    "/learningProgress/{progressId}": {
+      "schema": { "$ref": "#/entities/LearningProgress" },
+      "description": "Reading and video playback progress."
+    },
+    "/discussions/{questionId}": {
+      "schema": { "$ref": "#/entities/Discussion" },
+      "description": "Course material Q&A discussions."
+    }
+  }
+}

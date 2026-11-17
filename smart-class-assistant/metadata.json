@@ -1,0 +1,6 @@
+{
+  "name": "Smart Class Assistant",
+  "description": "Digital Learning Continuity System enabling university students to catch up on missed lectures, course materials, recorded classes, assignments, and quizzes.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
